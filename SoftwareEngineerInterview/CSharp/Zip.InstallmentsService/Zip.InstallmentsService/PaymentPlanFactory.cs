@@ -1,3 +1,5 @@
+using System;
+
 namespace Zip.InstallmentsService
 {
     /// <summary>
@@ -12,8 +14,51 @@ namespace Zip.InstallmentsService
         /// <returns>The PaymentPlan created with all properties set.</returns>
         public PaymentPlan CreatePaymentPlan(decimal purchaseAmount)
         {
-            // TODO
-            return new PaymentPlan();
+            if (purchaseAmount <= 0)
+                return null;
+
+            var paymentPlan = new PaymentPlan
+            {
+                Id = Guid.NewGuid(),
+                PurchaseAmount = purchaseAmount,
+                Installments = ConvertToInstallment(4, 14, purchaseAmount)
+            };
+
+
+            return paymentPlan;
+        }
+
+        private Installment[] ConvertToInstallment(int noOfInstallment, int intervalInDays, decimal purchaseAmount)
+        {
+            var intallments = new Installment[noOfInstallment];
+            var installmentDate = DateTime.UtcNow;
+
+            var installmentNumber = 0;
+            purchaseAmount = Math.Round(purchaseAmount);
+
+            try
+            {
+
+                while (installmentNumber < noOfInstallment)
+                {
+                    intallments[installmentNumber] = new Installment()
+                    {
+                        Id = Guid.NewGuid(),
+                        Amount = Math.Round(purchaseAmount / noOfInstallment,2),
+                        DueDate = installmentDate.Date
+                    };
+
+                    installmentDate = installmentDate.AddDays(intervalInDays);
+                    installmentNumber++;
+                }
+
+                return intallments;
+
+            }
+            catch(Exception exp)
+            {
+                throw new Exception($"Exception in ConvertToInstallment in {this}", exp);
+            }
         }
     }
 }
